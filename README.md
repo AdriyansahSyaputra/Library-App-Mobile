@@ -21,7 +21,7 @@ The application is designed to help students search and manage library books eff
 - Flutter
 - Dart
 - Firebase Authentication
-- Cloud Firestore
+- Firebase Realtime
 - Firebase Storage
 - Riverpod
 - GoRouter
