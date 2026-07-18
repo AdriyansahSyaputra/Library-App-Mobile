@@ -1,17 +1,36 @@
-# library_mobile
+# Library Mobile
 
-A new Flutter project.
+A mobile library management application developed using **Flutter** and **Firebase** as part of an undergraduate thesis project.
 
-## Getting Started
+The application is designed to help students search and manage library books efficiently while implementing the **Knuth-Morris-Pratt (KMP)** string matching algorithm to optimize book search functionality.
 
-This project is a starting point for a Flutter application.
+## Features
 
-A few resources to get you started if this is your first Flutter project:
+- User Authentication (Firebase Authentication)
+- Book Catalog
+- Book Search using KMP Algorithm
+- Book Detail
+- Borrowing History
+- User Profile
+- Admin Dashboard
+- Firebase Cloud Firestore
+- Firebase Storage
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Tech Stack
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Flutter
+- Dart
+- Firebase Authentication
+- Cloud Firestore
+- Firebase Storage
+- Riverpod
+- GoRouter
+- Google Fonts
+
+## Architecture
+
+This project adopts a **Feature-First Architecture** combined with the **Repository Pattern** to improve scalability and maintainability.
+
+## Purpose
+
+This application is developed as the final project (Undergraduate Thesis) for the Informatics Study Program.
