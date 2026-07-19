@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:library_mobile/features/catalog/presentation/pages/catalog_page.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import 'app_routes.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/reset_password_page.dart';
+import '../../features/dashboard/presentation/pages/main_dashboard_page.dart';
+import '../../features/catalog/presentation/pages/category_detail_page.dart';
+import '../../features/catalog/presentation/pages/book_detail_page.dart';
+import '../../features/catalog/providers/book_provider.dart';
 
-// JEMBATAN PENGHUBUNG: Memaksa GoRouter merender ulang saat status otentikasi berubah
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
 
@@ -56,7 +60,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         if (isGoingToAuthPage || state.uri.toString() == '/') {
           return user.role == 'admin'
               ? AppRoutes.adminDashboard
-              : AppRoutes.siswaKatalog;
+              : AppRoutes.siswaDashboard;
         }
       }
 
@@ -78,15 +82,35 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ResetPasswordPage(),
       ),
       GoRoute(
+        path: AppRoutes.siswaDashboard,
+        builder: (context, state) => const MainDashboardPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.catalogSiswa,
+        builder: (context, state) => const CatalogPage(),
+      ),
+      GoRoute(
+        path: '/kategori/:kategori',
+        name: AppRoutes.kategoriDetail,
+        builder: (context, state) {
+          // Menangkap parameter kategori dari URL
+          final namaKategori = state.pathParameters['kategori']!;
+          return CategoryDetailPage(categoryName: namaKategori);
+        },
+      ),
+      GoRoute(
+        path: '/buku/detail',
+        name: AppRoutes.bookDetail,
+        builder: (context, state) {
+          // Menangkap objek buku yang dikirim via parameter extra
+          final book = state.extra as BookModel;
+          return BookDetailPage(book: book);
+        },
+      ),
+      GoRoute(
         path: AppRoutes.adminDashboard,
         builder: (context, state) => const Scaffold(
           body: Center(child: Text('Ini Dashboard Admin (Hanya untuk Admin)')),
-        ),
-      ),
-      GoRoute(
-        path: AppRoutes.siswaKatalog,
-        builder: (context, state) => const Scaffold(
-          body: Center(child: Text('Ini Halaman Katalog Buku Siswa')),
         ),
       ),
     ],
