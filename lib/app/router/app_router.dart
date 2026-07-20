@@ -11,6 +11,9 @@ import '../../features/dashboard/presentation/pages/main_dashboard_page.dart';
 import '../../features/catalog/presentation/pages/category_detail_page.dart';
 import '../../features/catalog/presentation/pages/book_detail_page.dart';
 import '../../features/catalog/providers/book_provider.dart';
+import '../../features/profile/presentation/pages/profile_page.dart';
+import '../../features/profile/presentation/pages/personal_info_page.dart';
+import '../../features/profile/presentation/pages/change_password_page.dart';
 
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
@@ -106,6 +109,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           final book = state.extra as BookModel;
           return BookDetailPage(book: book);
         },
+      ),
+      GoRoute(
+        path: AppRoutes.profileSiswa,
+        builder: (context, state) => const ProfilePage(),
+      ),
+      GoRoute(
+        path: AppRoutes.personalInfo,
+        builder: (context, state) => const PersonalInfoPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.changePassword,
+        builder: (context, state) => const ChangePasswordPage(),
       ),
       GoRoute(
         path: AppRoutes.adminDashboard,

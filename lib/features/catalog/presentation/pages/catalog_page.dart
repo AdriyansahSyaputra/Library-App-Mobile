@@ -33,7 +33,6 @@ class _CatalogPageState extends ConsumerState<CatalogPage> {
 
   @override
   Widget build(BuildContext context) {
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Cek apakah saklar fokus dari dasbor sedang menyala (true)
       if (ref.read(searchAutoFocusProvider)) {
@@ -67,8 +66,9 @@ class _CatalogPageState extends ConsumerState<CatalogPage> {
           // 4. IMPLEMENTASI ALGORITMA KMP (Real-time Filtering)
           final searchedBooks = allBooks.where((book) {
             final keyword = _searchController.text.trim();
-            if (keyword.isEmpty)
+            if (keyword.isEmpty) {
               return true; // Tampilkan semua jika kotak pencarian kosong
+            }
 
             // Mencocokkan dengan Algoritma Knuth-Morris-Pratt
             bool matchTitle = KMPAlgorithm.search(book.judul, keyword);
@@ -220,8 +220,9 @@ class _CatalogPageState extends ConsumerState<CatalogPage> {
                               .toList();
 
                           // Jika kosong (karena filter teks KMP), sembunyikan baris ini
-                          if (bukuKategoriIni.isEmpty)
+                          if (bukuKategoriIni.isEmpty) {
                             return const SizedBox.shrink();
+                          }
 
                           // Logika Pembatasan Max 15 Buku
                           final bool isMoreThan15 = bukuKategoriIni.length > 15;

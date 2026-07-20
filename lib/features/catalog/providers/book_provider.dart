@@ -1,5 +1,6 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../auth/providers/auth_provider.dart';
 
 // 1. MODEL BUKU
 class BookModel {
@@ -8,7 +9,7 @@ class BookModel {
   final String judul;
   final String penulis;
   final String kategori;
-  final String tahunTerbit; 
+  final String tahunTerbit;
   final String status;
   final int stok;
   final String sampul;
@@ -83,5 +84,11 @@ class BookService {
 // 3. PROVIDER RIVERPOD
 final bookServiceProvder = Provider((ref) => BookService());
 final booksStreamProvider = StreamProvider<List<BookModel>>((ref) {
+  final user = ref.watch(currentUserProvider).valueOrNull;
+
+  if (user == null) {
+    return Stream.value([]);
+  }
+  
   return ref.watch(bookServiceProvder).streamBooks();
 });

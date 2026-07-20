@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import 'home_page.dart';
 import '../../../catalog/presentation/pages/catalog_page.dart';
+import '../../../profile/presentation/pages/profile_page.dart';
 
 // 1. STATE GLOBAL UNTUK MENGONTROL POSISI TAB
 final dashboardTabIndexProvider = StateProvider<int>((ref) => 0);
@@ -19,7 +20,7 @@ class MainDashboardPage extends ConsumerWidget {
       const HomePage(),
       const CatalogPage(), // Tab Katalog
       const Center(child: Text('Halaman Riwayat (Segera Hadir)')),
-      const Center(child: Text('Halaman Profil (Segera Hadir)')),
+      const ProfilePage(),
     ];
 
     return Scaffold(
