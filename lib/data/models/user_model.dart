@@ -27,7 +27,7 @@ class UserModel extends Equatable {
       namaLengkap: map['nama_lengkap'] ?? '',
       kelas: map['kelas'] ?? '',
       role: map['role'] ?? 'siswa',
-      fotoProfil: map['foto_profil'] ?? '',
+      fotoProfil: map['fotoProfil'] ?? '',
     );
   }
 
@@ -38,7 +38,7 @@ class UserModel extends Equatable {
       'nama_lengkap': namaLengkap,
       'kelas': kelas,
       'role': role,
-      'foto_profil': fotoProfil,
+      'fotoProfil': fotoProfil,
     };
   }
 

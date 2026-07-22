@@ -1,8 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../../core/constants/app_colors.dart';
-// Sesuaikan import di bawah dengan lokasi provider auth Anda
+import '../../../../core/constants/cloudinary_api.dart';
+import '../../../../../data/services/cloudinary_service.dart';
 import '../../../auth/providers/auth_provider.dart';
 
 class PersonalInfoPage extends ConsumerStatefulWidget {
@@ -20,27 +23,28 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
   late TextEditingController _kelasController;
   late TextEditingController _emailController;
 
+  // Variabel untuk menyimpan gambar dari galeri secara lokal
+  File? _selectedImageFile;
+  String? _existingImageUrl;
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    // 1. Inisialisasi controller dengan nilai kosong sementara
     _namaController = TextEditingController();
     _nisController = TextEditingController();
     _kelasController = TextEditingController();
     _emailController = TextEditingController();
 
-    // 2. Isi data setelah frame pertama selesai di-render
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = ref.read(currentUserProvider).valueOrNull;
       if (user != null) {
         setState(() {
           _namaController.text = user.namaLengkap;
-          // Ganti .nis di bawah dengan properti ID/NIS yang ada di UserModel Anda
           _nisController.text = user.nis;
           _kelasController.text = user.kelas;
           _emailController.text = user.email;
+          _existingImageUrl = user.fotoProfil; // Tarik URL gambar lama
         });
       }
     });
@@ -55,34 +59,78 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
     super.dispose();
   }
 
+  // Fungsi memanggil galeri dengan kompresi tingkat tinggi
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    // imageQuality: 40 akan mengompres file 5MB menjadi ~150KB seketika
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 40,
+      maxWidth: 800, // Cegah resolusi terlalu raksasa
+    );
+
+    if (image != null) {
+      setState(() {
+        _selectedImageFile = File(image.path);
+      });
+    }
+  }
+
   Future<void> _simpanPerubahan() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true);
 
     try {
       final user = ref.read(currentUserProvider).valueOrNull;
       if (user == null) throw Exception("Sesi pengguna tidak valid.");
 
-      // Logika Update ke Firebase Realtime Database
-      final dbRef = FirebaseDatabase.instance.ref('users/${user.idUser}');
-      await dbRef.update({
-        'namaLengkap': _namaController.text.trim(),
+      String? finalImageUrl = _existingImageUrl;
+      bool hasNewImageUploaded = false;
+
+      // 1. Unggah foto baru ke Cloudinary
+      if (_selectedImageFile != null) {
+        final uploadedUrl = await CloudinaryService.uploadImage(
+          _selectedImageFile!,
+          uploadPreset: ApiConstants.cloudinaryProfilePreset,
+        );
+        if (uploadedUrl != null) {
+          finalImageUrl = uploadedUrl;
+          hasNewImageUploaded = true;
+        }
+      }
+
+      // 2. Simpan ke Firebase Realtime DB
+      final updateData = {
+        'nama_lengkap': _namaController.text
+            .trim(), // Pastikan key DB Anda benar
         'nis': _nisController.text.trim(),
         'kelas': _kelasController.text.trim(),
-        // Email sengaja tidak di-update ke Realtime DB di sini karena mengubah email
-        // membutuhkan autentikasi ulang (re-authenticate) di Firebase Auth.
-      });
+      };
+
+      if (finalImageUrl != null) {
+        updateData['fotoProfil'] = finalImageUrl;
+      }
+
+      final dbRef = FirebaseDatabase.instance.ref('users/${user.idUser}');
+      await dbRef.update(updateData);
+
+      if (hasNewImageUploaded &&
+          _existingImageUrl != null &&
+          _existingImageUrl!.isNotEmpty) {
+        CloudinaryService.deleteImage(_existingImageUrl!);
+      }
+
+      // 4. Sinkronisasi Data UI
+      final _ = await ref.refresh(currentUserProvider.future);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Profil berhasil diperbarui!'),
             backgroundColor: AppColors.successBg,
-            behavior: SnackBarBehavior.floating,
           ),
         );
-        Navigator.pop(context); // Kembali ke halaman profil setelah sukses
+        Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
@@ -90,7 +138,6 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
           SnackBar(
             content: Text('Gagal menyimpan: $e'),
             backgroundColor: AppColors.dangerBg,
-            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -118,45 +165,60 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // FOTO PROFIL (Mockup visual)
+              // --- KOMPONEN FOTO PROFIL ---
               Center(
-                child: Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 60,
-                      backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                      child: const Icon(
-                        Icons.person,
-                        size: 60,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
+                child: GestureDetector(
+                  onTap: _pickImage,
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: 120,
+                        height: 120,
                         decoration: BoxDecoration(
-                          color: AppColors.primary,
+                          color: AppColors.primary.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: Theme.of(context).colorScheme.surface,
-                            width: 3,
+                            color: Colors.grey.withValues(alpha: 0.2),
+                          ),
+                          image: _buildProfileImageProvider(),
+                        ),
+                        child:
+                            _selectedImageFile == null &&
+                                _existingImageUrl == null
+                            ? const Icon(
+                                Icons.person,
+                                size: 60,
+                                color: AppColors.primary,
+                              )
+                            : null,
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.surface,
+                              width: 3,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.camera_alt,
+                            size: 20,
+                            color: Colors.white,
                           ),
                         ),
-                        child: const Icon(
-                          Icons.camera_alt,
-                          size: 20,
-                          color: Colors.white,
-                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 40),
 
-              // FORM INPUT
+              // --- FORM INPUT CRUD ---
               _buildInputLabel('Nama Lengkap'),
               _buildTextField(
                 _namaController,
@@ -179,7 +241,7 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
                 Icons.class_outlined,
               ),
 
-              _buildInputLabel('Email (Tidak dapat diubah)'),
+              _buildInputLabel('Email (Hubungi Admin untuk ubah)'),
               _buildTextField(
                 _emailController,
                 'Email Anda',
@@ -189,7 +251,7 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
 
               const SizedBox(height: 48),
 
-              // TOMBOL SIMPAN
+              // --- TOMBOL SIMPAN ---
               ElevatedButton(
                 onPressed: _isLoading ? null : _simpanPerubahan,
                 style: ElevatedButton.styleFrom(
@@ -223,6 +285,22 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
         ),
       ),
     );
+  }
+
+  // Logika cerdas untuk menentukan sumber gambar (File Lokal vs URL Internet)
+  DecorationImage? _buildProfileImageProvider() {
+    if (_selectedImageFile != null) {
+      return DecorationImage(
+        image: FileImage(_selectedImageFile!),
+        fit: BoxFit.cover,
+      );
+    } else if (_existingImageUrl != null && _existingImageUrl!.isNotEmpty) {
+      return DecorationImage(
+        image: NetworkImage(_existingImageUrl!),
+        fit: BoxFit.cover,
+      );
+    }
+    return null;
   }
 
   Widget _buildInputLabel(String label) {

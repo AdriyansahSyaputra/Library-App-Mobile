@@ -43,15 +43,15 @@ dependencies:
   go_router: ^14.2.0
 
   # Utilitas (Caching, Koneksi, Waktu, Generator ID)
-  shared_preferences: ^2.2.3 
-  connectivity_plus: ^6.1.0     
+  shared_preferences: ^2.2.3
+  connectivity_plus: ^6.1.0
   uuid: ^4.3.3
   intl: ^0.19.0
   logger: ^2.4.0
 
   # UI
   google_fonts: ^6.2.0
-  image_picker: ^1.1.0
+  image_picker: ^1.2.3
   cached_network_image: ^3.3.0
   shimmer: ^3.0.0
 
@@ -59,6 +59,9 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   flutter_image_compress: ^2.5.0
+  http: ^1.6.0
+  crypto: ^3.0.7
+  flutter_dotenv: ^6.0.1
 
 dev_dependencies:
   flutter_test:
@@ -82,9 +85,8 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  assets:
+    - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

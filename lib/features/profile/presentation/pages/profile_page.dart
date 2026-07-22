@@ -39,9 +39,8 @@ class ProfilePage extends ConsumerWidget {
                 ref.read(dashboardTabIndexProvider.notifier).state = 0;
 
                 ref.invalidate(booksStreamProvider);
-                
-                await FirebaseAuth.instance.signOut();
 
+                await FirebaseAuth.instance.signOut();
               } catch (e) {
                 // 3. Tangani error jika terjadi masalah jaringan
                 if (context.mounted) {
@@ -59,7 +58,10 @@ class ProfilePage extends ConsumerWidget {
               foregroundColor: AppColors.dangerText,
               elevation: 0,
             ),
-            child: const Text('Ya, Keluar', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: const Text(
+              'Ya, Keluar',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
@@ -71,6 +73,8 @@ class ProfilePage extends ConsumerWidget {
     // Tarik data user secara real-time
     final userState = ref.watch(currentUserProvider);
     final user = userState.valueOrNull;
+    final String? fotoUrl = user?.fotoProfil;
+    final bool hasProfilePicture = fotoUrl != null && fotoUrl.isNotEmpty;
 
     return Scaffold(
       backgroundColor: Theme.of(
@@ -98,11 +102,21 @@ class ProfilePage extends ConsumerWidget {
                   CircleAvatar(
                     radius: 50,
                     backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                    child: const Icon(
-                      Icons.person,
-                      size: 50,
-                      color: AppColors.primary,
-                    ),
+                    backgroundImage: hasProfilePicture
+                        ? NetworkImage(fotoUrl)
+                        : null,
+                    onBackgroundImageError: hasProfilePicture
+                        ? (exception, stackTrace) {
+                            debugPrint('Gagal memuat foto: $exception');
+                          }
+                        : null,
+                    child: hasProfilePicture
+                        ? null
+                        : const Icon(
+                            Icons.person,
+                            size: 50,
+                            color: AppColors.primary,
+                          ),
                   ),
                   const SizedBox(height: 16),
                   Text(
