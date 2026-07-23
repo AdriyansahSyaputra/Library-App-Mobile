@@ -26,11 +26,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     super.dispose();
   }
 
-  void _executeLogin() {
+  void _executeLogin() async {
     if (_formKey.currentState!.validate()) {
-      ref
+      await ref
           .read(authControllerProvider.notifier)
           .login(_emailController.text.trim(), _passwordController.text.trim());
+
+      if (!ref.read(authControllerProvider).hasError && mounted) {
+        final user = await ref.read(currentUserProvider.future);
+
+        if (user != null && mounted) {
+          // CABANG LOGIKA BERDASARKAN ROLE (Gunakan operator OR ||)
+          if (user.role == 'admin' || user.role == 'head_admin') {
+            context.go(AppRoutes.adminDashboard);
+          } else {
+            context.go(AppRoutes.siswaDashboard);
+          }
+        }
+      }
     }
   }
 

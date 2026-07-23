@@ -14,6 +14,8 @@ import '../../features/catalog/providers/book_provider.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/profile/presentation/pages/personal_info_page.dart';
 import '../../features/profile/presentation/pages/change_password_page.dart';
+import '../../features/admin/dashboard/presentation/pages/admin_main_page.dart';
+import '../../features/admin/settings/presentation/pages/admin_settings_page.dart';
 
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
@@ -124,9 +126,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.adminDashboard,
-        builder: (context, state) => const Scaffold(
-          body: Center(child: Text('Ini Dashboard Admin (Hanya untuk Admin)')),
-        ),
+        builder: (context, state) => const AdminMainPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminSettings,
+        builder: (context, state) => const AdminSettingsPage(),
       ),
     ],
   );

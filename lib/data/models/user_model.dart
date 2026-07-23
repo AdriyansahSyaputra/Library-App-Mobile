@@ -6,7 +6,7 @@ class UserModel extends Equatable {
   final String email;
   final String namaLengkap;
   final String kelas;
-  final String role; // 'admin' atau 'siswa'
+  final String role;
   final String fotoProfil;
 
   const UserModel({
