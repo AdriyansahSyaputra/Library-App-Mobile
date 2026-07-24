@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'admin_dashboard_page.dart';
 import '../../../settings/presentation/pages/admin_settings_page.dart';
+import '../../../catalog/presentation/pages/admin_catalog_page.dart';
 
 class AdminMainPage extends StatefulWidget {
   const AdminMainPage({super.key});
@@ -15,7 +16,7 @@ class _AdminMainPageState extends State<AdminMainPage> {
   // Daftar halaman untuk setiap menu navigasi
   final List<Widget> _pages = [
     const AdminDashboardPage(),
-    const Center(child: Text('Halaman Kelola Buku (Segera)')),
+    const AdminCatalogPage(),
     const Center(child: Text('Halaman Kelola Peminjaman (Segera)')),
     const Center(child: Text('Halaman Kelola Siswa (Segera)')),
     const AdminSettingsPage(),
@@ -78,10 +79,7 @@ class _AdminMainPageState extends State<AdminMainPage> {
           ),
         ],
       ),
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
-      ),
+      body: IndexedStack(index: _selectedIndex, children: _pages),
       // Standar Modern: Menggunakan NavigationBar (Material 3)
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,

@@ -30,10 +30,23 @@ class BookCardWidget extends StatelessWidget {
                       offset: const Offset(0, 4),
                     ),
                   ],
+                  image: book.sampul.isNotEmpty
+                      ? DecorationImage(
+                          image: NetworkImage(book.sampul),
+                          fit: BoxFit
+                              .cover, // Gambar dipotong menyesuaikan kotak
+                        )
+                      : null,
                 ),
-                child: const Center(
-                  child: Icon(Icons.menu_book, size: 48, color: Colors.grey),
-                ),
+                child: book.sampul.isEmpty
+                    ? const Center(
+                        child: Icon(
+                          Icons.menu_book_rounded,
+                          size: 48,
+                          color: Colors.grey,
+                        ),
+                      )
+                    : null,
               ),
               Positioned(
                 top: 8,

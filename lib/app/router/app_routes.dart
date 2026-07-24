@@ -13,4 +13,8 @@ class AppRoutes {
   // Admin Routes
   static const String adminDashboard = '/admin-dashboard';
   static const String adminSettings = '/admin/settings';
+  static const String adminCatalog = '/admin-catalog';
+  static const String adminCategoryDetail = '/admin-category-detail';
+  static const String adminBookDetail = '/admin-book-detail';
+  static const String adminAddBook = '/admin-add-book';
 }

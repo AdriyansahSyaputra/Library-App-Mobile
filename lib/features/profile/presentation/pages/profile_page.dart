@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../auth/providers/auth_provider.dart';
@@ -11,9 +10,8 @@ import '../../../dashboard/presentation/pages/main_dashboard_page.dart'; // Untu
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
-  void _handleLogout(BuildContext context, WidgetRef ref) {
-    // Tampilkan dialog konfirmasi sebelum logout sungguhan (Best Practice UX)
-    showDialog(
+  Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
+    final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text(
@@ -26,33 +24,11 @@ class ProfilePage extends ConsumerWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx),
+            onPressed: () => Navigator.pop(ctx, false),
             child: const Text('Batal', style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
-            onPressed: () async {
-              // 1. Tutup kotak dialog konfirmasinya dulu
-              Navigator.pop(ctx);
-
-              try {
-                // 2. Tembak perintah Logout resmi ke server Firebase
-                ref.read(dashboardTabIndexProvider.notifier).state = 0;
-
-                ref.invalidate(booksStreamProvider);
-
-                await FirebaseAuth.instance.signOut();
-              } catch (e) {
-                // 3. Tangani error jika terjadi masalah jaringan
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Gagal logout: $e'),
-                      backgroundColor: AppColors.dangerBg,
-                    ),
-                  );
-                }
-              }
-            },
+            onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.dangerBg,
               foregroundColor: AppColors.dangerText,
@@ -66,6 +42,34 @@ class ProfilePage extends ConsumerWidget {
         ],
       ),
     );
+
+    if (confirm == true) {
+      if (!context.mounted) return;
+
+      try {
+        // 1. Pindah Halaman
+        context.go(AppRoutes.login);
+        await Future.delayed(const Duration(milliseconds: 300));
+
+        // 2. Pembersihan Cache Ekstensif
+        ref.read(dashboardTabIndexProvider.notifier).state =
+            0; // Reset tab bawah
+        ref.invalidate(booksStreamProvider); // Hapus cache buku siswa
+        ref.invalidate(currentUserProvider); // Hapus profil
+
+        // 3. Eksekusi Logout
+        await ref.read(authControllerProvider.notifier).logout();
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Gagal logout: $e'),
+              backgroundColor: AppColors.dangerBg,
+            ),
+          );
+        }
+      }
+    }
   }
 
   @override

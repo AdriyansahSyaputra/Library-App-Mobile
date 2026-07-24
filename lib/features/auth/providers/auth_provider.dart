@@ -19,20 +19,17 @@ final authControllerProvider =
       return AuthController(authService, dbService);
     });
 
-// 3. StreamProvider: Sensor otomatis yang mendeteksi apakah ada user yang sedang login
 final authStateChangesProvider = StreamProvider<User?>((ref) {
   return ref.watch(authServiceProvider).authStateChanges;
 });
 
-// 4. FutureProvider: Menarik biodata lengkap (termasuk Role) dari RTDB berdasarkan UID yang login
 final currentUserProvider = FutureProvider<UserModel?>((ref) async {
-  // Pantau sensor authStateChangesProvider
-  final firebaseUser = ref.watch(authStateChangesProvider).value;
+  ref.watch(authStateChangesProvider);
 
-  // Jika tidak ada yang login, kembalikan null
+  final firebaseUser = FirebaseAuth.instance.currentUser;
+
   if (firebaseUser == null) return null;
 
-  // Jika ada yang login, tarik datanya dari Realtime Database
   final dbService = ref.watch(databaseServiceProvider);
   final userDataMap = await dbService.getUserData(firebaseUser.uid);
 

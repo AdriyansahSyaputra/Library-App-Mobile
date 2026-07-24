@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../auth/providers/auth_provider.dart';
 import '../../../../../app/router/app_routes.dart';
 
 class AdminSettingsPage extends ConsumerWidget {
   const AdminSettingsPage({super.key});
 
-  // --- FUNGSI LOGOUT YANG AMAN ---
   Future<void> _prosesLogout(BuildContext context, WidgetRef ref) async {
-    // Tampilkan dialog konfirmasi sebelum keluar
     final bool? confirm = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -44,18 +41,20 @@ class AdminSettingsPage extends ConsumerWidget {
     );
 
     if (confirm == true) {
-      try {
-        await FirebaseAuth.instance.signOut();
+      if (!context.mounted) return;
 
+      try {
+        // 1. Pindah UI terlebih dahulu (Mematikan listener stream aktif di halaman ini)
+        context.go(AppRoutes.login);
+
+        // 2. Jeda waktu untuk animasi transisi selesai
+        await Future.delayed(const Duration(milliseconds: 300));
+
+        // 3. Bersihkan memori aplikasi dari data admin yang tersisa
         ref.invalidate(currentUserProvider);
 
-        if (context.mounted) {
-          context.go(AppRoutes.login);
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Berhasil keluar dari sistem.')),
-          );
-        }
+        // 4. Eksekusi Logout Firebase resmi via Controller
+        await ref.read(authControllerProvider.notifier).logout();
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

@@ -15,6 +15,7 @@ class ApiConstants {
       _getEnv('CLOUDINARY_PROFILE_PRESET');
   static String get cloudinaryApiKey => _getEnv('CLOUDINARY_API_KEY');
   static String get cloudinaryApiSecret => _getEnv('CLOUDINARY_API_SECRET');
+  static String get cloudinaryBookPreset => _getEnv('CLOUDINARY_BOOK_PRESET');
 
   static String get cloudinaryUploadUrl =>
       'https://api.cloudinary.com/v1_1/$cloudinaryCloudName/upload';

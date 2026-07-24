@@ -1,4 +1,5 @@
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:logger/logger.dart';
 
 class DatabaseService {
@@ -33,14 +34,34 @@ class DatabaseService {
   // Menarik data detail pengguna berdasarkan UID
   Future<Map<String, dynamic>?> getUserData(String uid) async {
     try {
-      final snapshot = await _db.child('users').child(uid).get();
+      final dbRef = FirebaseDatabase.instance.ref();
+
+      final snapshot = await dbRef
+          .child('users')
+          .child(uid)
+          .get()
+          .timeout(
+            const Duration(seconds: 5),
+            onTimeout: () =>
+                throw Exception("Timeout: Koneksi ke server terputus."),
+          );
+
       if (snapshot.exists) {
         return Map<String, dynamic>.from(snapshot.value as Map);
       }
       return null;
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied') {
+        _logger.w(
+          "Akses ditolak: Wajar terjadi saat transisi logout. Diabaikan.",
+        );
+        return null;
+      }
+      _logger.e("Gagal menarik data user (Firebase): ${e.message}");
+      return null;
     } catch (e) {
-      _logger.e("Gagal menarik data user: $e");
-      throw Exception('Gagal memuat profil pengguna');
+      _logger.e("⛔ Gagal menarik data user (Sistem): $e");
+      return null;
     }
   }
 }
